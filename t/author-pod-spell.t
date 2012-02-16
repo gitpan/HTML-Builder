@@ -38,6 +38,8 @@ ABEND
 RSRCHBOY
 RSRCHBOY's
 ini
+metaclass
+metaclasses
 subclasses
 Chris
 Weyl

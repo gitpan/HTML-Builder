@@ -27,8 +27,9 @@ requires:
   warnings: 0
 resources:
   bugtracker: https://github.com/RsrchBoy/html-builder/issues
+  homepage: http://metacpan.org/release/HTML-Builder/
   repository: git://github.com/RsrchBoy/html-builder.git
-version: 0.001
+version: 0.002
 x_Dist_Zilla:
   plugins:
     -

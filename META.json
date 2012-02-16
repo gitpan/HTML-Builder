@@ -45,13 +45,14 @@
       "bugtracker" : {
          "web" : "https://github.com/RsrchBoy/html-builder/issues"
       },
+      "homepage" : "http://metacpan.org/release/HTML-Builder/",
       "repository" : {
          "type" : "git",
          "url" : "git://github.com/RsrchBoy/html-builder.git",
          "web" : "https://github.com/RsrchBoy/html-builder"
       }
    },
-   "version" : "0.001",
+   "version" : "0.002",
    "x_Dist_Zilla" : {
       "plugins" : [
          {

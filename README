@@ -2,7 +2,7 @@ NAME
     HTML::Builder - A declarative approach to HTML generation
 
 VERSION
-    This document describes 0.001 of HTML::Builder - released February 14,
+    This document describes 0.002 of HTML::Builder - released February 16,
     2012 as part of HTML-Builder.
 
 SYNOPSIS
@@ -46,6 +46,19 @@ USAGE
 
     gets may be specified multiple times, for multiple attributes.
 
+  Nested Tags
+    When one tag function is called from within another, the nested tag will
+    print its output to STDOUT rather than returning it. That means that
+    this:
+
+        div { print h1 { 'Hi there! }; p { "Nice day, isn't it?" } }
+
+    ...and this:
+
+        div { h1 { 'Hi there! }; p { "Nice day, isn't it?" } }
+
+    Behave identically, from the perspective of the caller.
+
 EXPORTED FUNCTIONS
     Each tag we handle is capable of being exported, and called with a
     coderef. This coderef is executed, and the return is wrapped in the tag.
@@ -66,7 +79,7 @@ EXPORTED FUNCTIONS
    minimal
     A basic set of the most commonly used tags:
 
-        h1..h4 div p img script br ul ol li style a
+        h1..h4 div p img span script br ul ol li style a
 
    moose_safe
     Everything, except tags that would conflict with Moose sugar (currently

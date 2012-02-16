@@ -9,7 +9,7 @@
 #
 package HTML::Builder;
 {
-  $HTML::Builder::VERSION = '0.001';
+  $HTML::Builder::VERSION = '0.002';
 }
 
 # ABSTRACT: A declarative approach to HTML generation
@@ -29,6 +29,8 @@ use List::MoreUtils 'uniq';
 #use Smart::Comments;
 
 my @tags;
+
+our $IN_TAG;
 
 
 sub our_tags {
@@ -81,10 +83,18 @@ BEGIN {
         no warnings 'once', 'redefine';
         local *gets::AUTOLOAD = _is_autoload_gen(\%attrs);
         my $inner = q{};
-        my $stdout = capture_stdout { $inner .= $inner_coderef->() || q{} };
+        my $stdout = capture_stdout { local $IN_TAG = 1; $inner .= $inner_coderef->() || q{} };
 
-        ### $stdout
-        return $h->tag($tag, \%attrs, "$stdout$inner");
+        my $return = $h->tag($tag, \%attrs, "$stdout$inner");
+
+        ### $return
+        if ($IN_TAG) {
+            print $return;
+            return q{};
+        }
+        else {
+            return $return;
+        }
     }
 
     @tags = our_tags();
@@ -107,7 +117,7 @@ use Sub::Exporter -setup => {
         moose_safe => [ grep { ! /^(meta|with)/ } @tags ],
 
         minimal => [ 'h1'..'h5', qw{
-            div p img script br ul ol li style a
+            div span p img script br ul ol li style a
         } ],
     },
 };
@@ -126,7 +136,7 @@ HTML::Builder - A declarative approach to HTML generation
 
 =head1 VERSION
 
-This document describes 0.001 of HTML::Builder - released February 14, 2012 as part of HTML-Builder.
+This document describes 0.002 of HTML::Builder - released February 16, 2012 as part of HTML-Builder.
 
 =head1 SYNOPSIS
 
@@ -175,6 +185,19 @@ Generates:
 
 L<gets> may be specified multiple times, for multiple attributes.
 
+=head2 Nested Tags
+
+When one tag function is called from within another, the nested tag will print
+its output to STDOUT rather than returning it.  That means that this:
+
+    div { print h1 { 'Hi there! }; p { "Nice day, isn't it?" } }
+
+...and this:
+
+    div { h1 { 'Hi there! }; p { "Nice day, isn't it?" } }
+
+Behave identically, from the perspective of the caller.
+
 =head1 EXPORTED FUNCTIONS
 
 Each tag we handle is capable of being exported, and called with a coderef.
@@ -199,7 +222,7 @@ from.
 
 A basic set of the most commonly used tags:
 
-    h1..h4 div p img script br ul ol li style a
+    h1..h4 div p img span script br ul ol li style a
 
 =head3 moose_safe
 
