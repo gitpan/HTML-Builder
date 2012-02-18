@@ -2,7 +2,7 @@ NAME
     HTML::Builder - A declarative approach to HTML generation
 
 VERSION
-    This document describes 0.002 of HTML::Builder - released February 16,
+    This document describes 0.003 of HTML::Builder - released February 18,
     2012 as part of HTML-Builder.
 
 SYNOPSIS
@@ -23,6 +23,16 @@ FUNCTIONS
     The actual function responsible for handling the tagging. All of the
     helper functions pass off to tag() (e.g. "div()" is "sub div(&) {
     unshift 'div'; goto \&tag }").
+
+  html5_tags()
+    The list of tags we think are HTML5.
+
+  html_tags()
+    The list of tags we think are HTML ( < HTML5, that is).
+
+  our_tags()
+    The unique, sorted list of all tags returned by html5_tags() and
+    html_tags().
 
 USAGE
     Each supported HTML tag takes a coderef, executes it, and returns the
@@ -66,7 +76,7 @@ EXPORTED FUNCTIONS
     a la "id gets 'foo'".
 
   Export Groups
-   all
+   :all
     Everything.
 
     Well, what @CGI::EXPORT_TAGS{qw{ :html2 :html3 :html4 }} thinks is
@@ -76,12 +86,16 @@ EXPORTED FUNCTIONS
     yet. That being said, I'm open to changing our tags list, and where it's
     generated from.
 
-   minimal
+   :minimal
     A basic set of the most commonly used tags:
 
         h1..h4 div p img span script br ul ol li style a
 
-   moose_safe
+   :html5
+    HTML5 tags ("article", "header", "nav", etc) -- or at least what
+    Wikipedia thinks are HTML5 tags.
+
+   :moose_safe
     Everything, except tags that would conflict with Moose sugar (currently
     "meta").
 

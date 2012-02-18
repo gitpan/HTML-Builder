@@ -9,7 +9,7 @@
 #
 package HTML::Builder;
 {
-  $HTML::Builder::VERSION = '0.002';
+  $HTML::Builder::VERSION = '0.003';
 }
 
 # ABSTRACT: A declarative approach to HTML generation
@@ -33,13 +33,28 @@ my @tags;
 our $IN_TAG;
 
 
-sub our_tags {
-    state $tags = [ uniq sort
-        #grep { ! /^(state)$/ }
+# http://en.wikipedia.org/wiki/HTML5#Differences_from_HTML.C2.A04.01_and_XHTML.C2.A01.x
+# 18 Feb 2012
+
+
+sub html5_tags { qw{
+
+    article aside audio bdo canvas command datalist details embed figcaption
+    figure footer header hgroup keygen mark meter nav output progress rp rt
+    ruby section source summary time video wbr
+
+} }
+
+sub html_tags {
+    return
         map { @{$_} }
         map { $CGI::EXPORT_TAGS{$_} // [] }
         qw{ :html2 :html3 :html4 }
-    ];
+        ;
+}
+
+sub our_tags {
+    state $tags = [ uniq sort (html5_tags(), html_tags()) ];
 
     return @$tags;
 }
@@ -119,6 +134,8 @@ use Sub::Exporter -setup => {
         minimal => [ 'h1'..'h5', qw{
             div span p img script br ul ol li style a
         } ],
+
+        html5 => [ html5_tags() ],
     },
 };
 
@@ -136,7 +153,7 @@ HTML::Builder - A declarative approach to HTML generation
 
 =head1 VERSION
 
-This document describes 0.002 of HTML::Builder - released February 16, 2012 as part of HTML-Builder.
+This document describes 0.003 of HTML::Builder - released February 18, 2012 as part of HTML-Builder.
 
 =head1 SYNOPSIS
 
@@ -161,6 +178,18 @@ A unique, sorted list of the HTML tags we know about (and handle).
 The actual function responsible for handling the tagging.  All of the helper
 functions pass off to tag() (e.g. C<div()> is C<sub div(&) { unshift 'div';
 goto \&tag }>).
+
+=head2 html5_tags()
+
+The list of tags we think are HTML5.
+
+=head2 html_tags()
+
+The list of tags we think are HTML ( < HTML5, that is).
+
+=head2 our_tags()
+
+The unique, sorted list of all tags returned by html5_tags() and html_tags().
 
 =head1 USAGE
 
@@ -207,7 +236,7 @@ the tag can be set from within the coderef by using L<gets>, a la C<id gets
 
 =head2 Export Groups
 
-=head3 all
+=head3 :all
 
 Everything.
 
@@ -218,13 +247,18 @@ This isn't, perhaps, optimal, but I haven't run into any issues with it yet.
 That being said, I'm open to changing our tags list, and where it's generated
 from.
 
-=head3 minimal
+=head3 :minimal
 
 A basic set of the most commonly used tags:
 
     h1..h4 div p img span script br ul ol li style a
 
-=head3 moose_safe
+=head3 :html5
+
+HTML5 tags (C<article>, C<header>, C<nav>, etc) -- or at least what Wikipedia
+thinks are HTML5 tags.
+
+=head3 :moose_safe
 
 Everything, except tags that would conflict with L<Moose> sugar (currently
 C<meta>).
