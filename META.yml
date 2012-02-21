@@ -16,7 +16,6 @@ meta-spec:
   version: 1.4
 name: HTML-Builder
 requires:
-  CGI: 0
   Capture::Tiny: 0.15
   HTML::Tiny: 0
   List::MoreUtils: 0
@@ -29,7 +28,7 @@ resources:
   bugtracker: https://github.com/RsrchBoy/html-builder/issues
   homepage: http://metacpan.org/release/HTML-Builder/
   repository: git://github.com/RsrchBoy/html-builder.git
-version: 0.003
+version: 0.004
 x_Dist_Zilla:
   plugins:
     -

@@ -48,7 +48,6 @@ sub pmver {
     return sprintf('%-45s => %-10s%-15s%s', $module, $pmver, $wanted, "\n");
 }
 
-eval { $v .= pmver('CGI','any version') };
 eval { $v .= pmver('Capture::Tiny','0.15') };
 eval { $v .= pmver('ExtUtils::MakeMaker','6.30') };
 eval { $v .= pmver('File::Find','any version') };

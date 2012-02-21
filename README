@@ -2,7 +2,7 @@ NAME
     HTML::Builder - A declarative approach to HTML generation
 
 VERSION
-    This document describes 0.003 of HTML::Builder - released February 18,
+    This document describes 0.004 of HTML::Builder - released February 20,
     2012 as part of HTML-Builder.
 
 SYNOPSIS
@@ -30,9 +30,27 @@ FUNCTIONS
   html_tags()
     The list of tags we think are HTML ( < HTML5, that is).
 
+  depreciated_tags()
+    HTML elements considered to be depreciated.
+
   our_tags()
     The unique, sorted list of all tags returned by html5_tags() and
     html_tags().
+
+  conflicting_tags
+    Returns a HashRef of tags that conflict with Perl builtins: our named
+    exports for the tags are the keys; the tags themselves are the values.
+
+  table_tags
+    A list of tags related to tables, that will belong to the ":table"
+    group.
+
+  minimal_tags
+    A list of tags we consider a "minimal" set. These will belong to the
+    ":minimal" group.
+
+  our_tags
+    The set of all the tags we know of.
 
 USAGE
     Each supported HTML tag takes a coderef, executes it, and returns the
@@ -69,22 +87,32 @@ USAGE
 
     Behave identically, from the perspective of the caller.
 
+RENAMING EXPORTED FUNCTIONS
+    This package uses Sub::Exporter, so you can take advantage of the
+    features that package provides. For example, if you wanted to import the
+    tags in the 'minimal' group, but wanted to prefix each function with
+    'html_', you could do:
+
+        use HTML::Builder -minimal => { -prefix => 'html_' };
+
 EXPORTED FUNCTIONS
     Each tag we handle is capable of being exported, and called with a
     coderef. This coderef is executed, and the return is wrapped in the tag.
     Attributes on the tag can be set from within the coderef by using gets,
     a la "id gets 'foo'".
 
+    By default we export the ":minimal" group.
+
   Export Groups
    :all
-    Everything.
+    Everything not conflicting with Perl builtins.
 
-    Well, what @CGI::EXPORT_TAGS{qw{ :html2 :html3 :html4 }} thinks is
-    everything, at any rate.
+    This isn't an optimal group to use as-is -- it will cause a ton of
+    functions to be imported, including some that will conflict with several
+    Perl builtins. If you use this group, you are highly encouraged to
+    supply a prefix for it, like:
 
-    This isn't, perhaps, optimal, but I haven't run into any issues with it
-    yet. That being said, I'm open to changing our tags list, and where it's
-    generated from.
+        use HTML::Builder -all => { -prefix => 'html_' };
 
    :minimal
     A basic set of the most commonly used tags:
@@ -95,9 +123,13 @@ EXPORTED FUNCTIONS
     HTML5 tags ("article", "header", "nav", etc) -- or at least what
     Wikipedia thinks are HTML5 tags.
 
-   :moose_safe
-    Everything, except tags that would conflict with Moose sugar (currently
-    "meta").
+   :table
+    The table tags:
+
+        table thead tbody tfoot tr th td
+
+    As "tr" would conflict with a Perl builtin, it is recommended that this
+    group be imported with a prefix ('table_' would seem to suggest itself).
 
 ACKNOWLEDGMENTS
     This package was inspired by Template::Declare::Tags... In particular,
@@ -110,11 +142,11 @@ SEE ALSO
     Please see those modules/websites for more information related to this
     module.
 
-    *   CGI (in particular, %CGI::EXPORT_TAGS)
-
     *   HTML::Tiny
 
     *   Template::Declare::Tags
+
+    *   HTML::HTML5::Builder
 
 SOURCE
     The development version is on github at

@@ -9,7 +9,7 @@
 #
 package HTML::Builder;
 {
-  $HTML::Builder::VERSION = '0.003';
+  $HTML::Builder::VERSION = '0.004';
 }
 
 # ABSTRACT: A declarative approach to HTML generation
@@ -20,7 +20,6 @@ use strict;
 use warnings;
 
 use Capture::Tiny 0.15 'capture_stdout';
-use CGI ();
 use HTML::Tiny;
 use Sub::Install;
 use List::MoreUtils 'uniq';
@@ -28,14 +27,19 @@ use List::MoreUtils 'uniq';
 # debugging...
 #use Smart::Comments;
 
-my @tags;
-
 our $IN_TAG;
 
 
+# HTML5 tags from:
 # http://en.wikipedia.org/wiki/HTML5#Differences_from_HTML.C2.A04.01_and_XHTML.C2.A01.x
 # 18 Feb 2012
+#
+# Other HTML tags from:
+# http://www.w3schools.com/tags/default.asp
+# 19 Feb 2012
 
+
+# !--...--	Defines
 
 sub html5_tags { qw{
 
@@ -45,99 +49,149 @@ sub html5_tags { qw{
 
 } }
 
+# excl: s
+sub depreciated_tags { qw{ applet basefont center dir font menu strike u xmp } }
+
+
+sub conflicting_tags { {
+    html_sub => 'sub',
+    html_map => 'map',
+    html_q   => 'q',
+    html_tr  => 'tr',
+} }
+
 sub html_tags {
-    return
-        map { @{$_} }
-        map { $CGI::EXPORT_TAGS{$_} // [] }
-        qw{ :html2 :html3 :html4 }
-        ;
+
+    # excl: sub map q tr
+
+    return qw{
+
+        a        abbr       acronym    address      area       b
+        base     bdo        big        blockquote   body       br
+        button   caption    cite       code         col        colgroup
+        dd       del        dfn        div          dl         dt
+        em       fieldset   form       frame        frameset   h1
+        head     hr         html       i            iframe     img
+        input    ins        kbd        label        legend     li
+        link                meta       noframes     noscript   object
+        ol       optgroup   option     p            param      pre
+                 samp       script     select       small      span
+                 strong     style                   sup        table
+        tbody    td         textarea   tfoot        th         thead
+        title               tt         ul           var
+
+    };
 }
+
+
+sub table_tags { qw{ tr td th thead tbody tfoot } }
+
+
+sub minimal_tags {
+    return ('h1'..'h5', qw{
+        div span p img script br ul ol li style a
+    });
+}
+
 
 sub our_tags {
-    state $tags = [ uniq sort (html5_tags(), html_tags()) ];
-
-    return @$tags;
+    my @tags = (
+        html5_tags(),
+        html_tags(),
+        depreciated_tags(),
+        (keys %{ conflicting_tags() }),
+    );
+    return uniq sort @tags;
 }
 
-BEGIN {
+sub _is_autoload_gen {
+    my ($attr_href) = @_;
 
-    sub _is_autoload_gen {
-        my ($attr_href) = @_;
+    return sub {
+        shift;
 
-        return sub {
-            shift;
+        my $field = our $AUTOLOAD;
+        $field =~ s/.*:://;
 
-            my $field = our $AUTOLOAD;
-            $field =~ s/.*:://;
+        # XXX
+        $field =~ s/__/:/g;   # xml__lang  is 'foo' ====> xml:lang="foo"
+        $field =~ s/_/-/g;    # http_equiv is 'bar' ====> http-equiv="bar"
 
-            # XXX
-            $field =~ s/__/:/g;   # xml__lang  is 'foo' ====> xml:lang="foo"
-            $field =~ s/_/-/g;    # http_equiv is 'bar' ====> http-equiv="bar"
+        # Squash empty values, but not '0' values
+        my $val = join ' ', grep { defined $_ && $_ ne '' } @_;
 
-            # Squash empty values, but not '0' values
-            my $val = join ' ', grep { defined $_ && $_ ne '' } @_;
+        #push @$attr_aref, $field => $val;
+        $attr_href->{$field} = $val;
 
-            #push @$attr_aref, $field => $val;
-            $attr_href->{$field} = $val;
+        return;
+    };
+}
 
-            return;
-        };
+sub tag($&) {
+    my ($tag, $inner_coderef) = @_;
+
+    state $h = HTML::Tiny->new;
+
+    ### @_
+    my %attrs = ();
+
+    # This is almost completely stolen from Template::Declare::Tags, and
+    # completely terrifying in that it confirms my dark suspicions on how
+    # it was achieved over there.
+    no warnings 'once', 'redefine';
+    local *gets::AUTOLOAD = _is_autoload_gen(\%attrs);
+    my $inner = q{};
+    my $stdout = capture_stdout { local $IN_TAG = 1; $inner .= $inner_coderef->() || q{} };
+
+    my $return = $h->tag($tag, \%attrs, "$stdout$inner");
+
+    ### $return
+    if ($IN_TAG) {
+        print $return;
+        return q{};
     }
-
-    my $h = HTML::Tiny->new;
-
-    sub tag($&) {
-        my ($tag, $inner_coderef) = @_;
-
-        ### @_
-        my %attrs = ();
-
-        # This is almost completely stolen from Template::Declare::Tags, and
-        # completely terrifying in that it confirms my dark suspicions on how
-        # it was achieved over there.
-        no warnings 'once', 'redefine';
-        local *gets::AUTOLOAD = _is_autoload_gen(\%attrs);
-        my $inner = q{};
-        my $stdout = capture_stdout { local $IN_TAG = 1; $inner .= $inner_coderef->() || q{} };
-
-        my $return = $h->tag($tag, \%attrs, "$stdout$inner");
-
-        ### $return
-        if ($IN_TAG) {
-            print $return;
-            return q{};
-        }
-        else {
-            return $return;
-        }
-    }
-
-    @tags = our_tags();
-
-    for my $tag (@tags) {
-
-        Sub::Install::install_sub({
-            code => sub(&) { unshift @_, $tag; goto \&tag },
-            as   => $tag,
-        });
+    else {
+        return $return;
     }
 }
 
 use Sub::Exporter -setup => {
 
-    exports => [ @tags ],
+    exports => [ our_tags ],
     groups  => {
 
-        default    => ':moose_safe',
-        moose_safe => [ grep { ! /^(meta|with)/ } @tags ],
+        default    => ':minimal',
 
-        minimal => [ 'h1'..'h5', qw{
-            div span p img script br ul ol li style a
-        } ],
-
-        html5 => [ html5_tags() ],
+        minimal     => sub { _generate_group([     minimal_tags ], @_) },
+        html5       => sub { _generate_group([       html5_tags ], @_) },
+        depreciated => sub { _generate_group([ depreciated_tags ], @_) },
+        table       => sub { _generate_group([       table_tags ], @_) },
     },
 };
+
+sub _generate_group {
+    my ($tags, $class, $group, $arg) = @_;
+
+    return {
+        map { my $tag = $_; $tag => sub(&) { unshift @_, $tag; goto \&tag } }
+        @$tags
+    };
+}
+
+{
+    my $_install = sub {
+        my ($subname, $tag) = @_;
+        $tag ||= $subname;
+        Sub::Install::install_sub({
+            code => sub(&) { unshift @_, $tag; goto \&tag },
+            as   => $tag,
+        });
+    };
+
+    my $conflict = conflicting_tags;
+    $_install->($_)  for our_tags;
+    $_install->(@$_) for map { [ $_ => $conflict->{$_} ] } keys %$conflict;
+}
 
 !!42;
 
@@ -153,7 +207,7 @@ HTML::Builder - A declarative approach to HTML generation
 
 =head1 VERSION
 
-This document describes 0.003 of HTML::Builder - released February 18, 2012 as part of HTML-Builder.
+This document describes 0.004 of HTML::Builder - released February 20, 2012 as part of HTML-Builder.
 
 =head1 SYNOPSIS
 
@@ -187,9 +241,31 @@ The list of tags we think are HTML5.
 
 The list of tags we think are HTML ( < HTML5, that is).
 
+=head2 depreciated_tags()
+
+HTML elements considered to be depreciated.
+
 =head2 our_tags()
 
 The unique, sorted list of all tags returned by html5_tags() and html_tags().
+
+=head2 conflicting_tags
+
+Returns a HashRef of tags that conflict with Perl builtins: our named exports
+for the tags are the keys; the tags themselves are the values.
+
+=head2 table_tags
+
+A list of tags related to tables, that will belong to the C<:table> group.
+
+=head2 minimal_tags
+
+A list of tags we consider a "minimal" set.  These will belong to the
+C<:minimal> group.
+
+=head2 our_tags
+
+The set of all the tags we know of.
 
 =head1 USAGE
 
@@ -227,6 +303,15 @@ its output to STDOUT rather than returning it.  That means that this:
 
 Behave identically, from the perspective of the caller.
 
+=head1 RENAMING EXPORTED FUNCTIONS
+
+This package uses L<Sub::Exporter>, so you can take advantage of the features
+that package provides.  For example, if you wanted to import the tags in the
+'minimal' group, but wanted to prefix each function with 'html_', you could
+do:
+
+    use HTML::Builder -minimal => { -prefix => 'html_' };
+
 =head1 EXPORTED FUNCTIONS
 
 Each tag we handle is capable of being exported, and called with a coderef.
@@ -234,18 +319,20 @@ This coderef is executed, and the return is wrapped in the tag.  Attributes on
 the tag can be set from within the coderef by using L<gets>, a la C<id gets
 'foo'>.
 
+By default we export the C<:minimal> group.
+
 =head2 Export Groups
 
 =head3 :all
 
-Everything.
+Everything not conflicting with Perl builtins.
 
-Well, what C<@CGI::EXPORT_TAGS{qw{ :html2 :html3 :html4 }}> thinks is
-everything, at any rate.
+This isn't an optimal group to use as-is -- it will cause a ton of functions
+to be imported, including some that will conflict with several Perl builtins.
+If you use this group, you are highly encouraged to supply a prefix for it,
+like:
 
-This isn't, perhaps, optimal, but I haven't run into any issues with it yet.
-That being said, I'm open to changing our tags list, and where it's generated
-from.
+    use HTML::Builder -all => { -prefix => 'html_' };
 
 =head3 :minimal
 
@@ -258,10 +345,14 @@ A basic set of the most commonly used tags:
 HTML5 tags (C<article>, C<header>, C<nav>, etc) -- or at least what Wikipedia
 thinks are HTML5 tags.
 
-=head3 :moose_safe
+=head3 :table
 
-Everything, except tags that would conflict with L<Moose> sugar (currently
-C<meta>).
+The table tags:
+
+    table thead tbody tfoot tr th td
+
+As C<tr> would conflict with a Perl builtin, it is recommended that this group
+be imported with a prefix ('table_' would seem to suggest itself).
 
 =head1 ACKNOWLEDGMENTS
 
@@ -278,15 +369,15 @@ Please see those modules/websites for more information related to this module.
 
 =item *
 
-L<L<CGI> (in particular, C<%CGI::EXPORT_TAGS>)|L<CGI> (in particular, C<%CGI::EXPORT_TAGS>)>
-
-=item *
-
 L<HTML::Tiny>
 
 =item *
 
 L<Template::Declare::Tags>
+
+=item *
+
+L<HTML::HTML5::Builder>
 
 =back
 
@@ -320,5 +411,4 @@ This is free software, licensed under:
 
 
 __END__
-
 

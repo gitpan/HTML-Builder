@@ -24,7 +24,6 @@ my %WriteMakefileArgs = (
   "LICENSE" => "lgpl",
   "NAME" => "HTML::Builder",
   "PREREQ_PM" => {
-    "CGI" => 0,
     "Capture::Tiny" => "0.15",
     "HTML::Tiny" => 0,
     "List::MoreUtils" => 0,
@@ -33,7 +32,7 @@ my %WriteMakefileArgs = (
     "strict" => 0,
     "warnings" => 0
   },
-  "VERSION" => "0.003",
+  "VERSION" => "0.004",
   "test" => {
     "TESTS" => "t/*.t"
   }
