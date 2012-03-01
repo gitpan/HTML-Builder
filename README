@@ -2,8 +2,8 @@ NAME
     HTML::Builder - A declarative approach to HTML generation
 
 VERSION
-    This document describes 0.004 of HTML::Builder - released February 20,
-    2012 as part of HTML-Builder.
+    This document describes 0.005 of HTML::Builder - released March 01, 2012
+    as part of HTML-Builder.
 
 SYNOPSIS
         use HTML::Builder ':minimal';
@@ -41,6 +41,9 @@ FUNCTIONS
     Returns a HashRef of tags that conflict with Perl builtins: our named
     exports for the tags are the keys; the tags themselves are the values.
 
+  form_tags
+    A list of tags related to forms, that will belong to the ":form" group.
+
   table_tags
     A list of tags related to tables, that will belong to the ":table"
     group.
@@ -51,6 +54,18 @@ FUNCTIONS
 
   our_tags
     The set of all the tags we know of.
+
+  attr(&)
+    An alternative to using "gets" (or instances where it won't work, e.g.
+    "for gets 'name'"). Takes a coderef, expects that coderef to return a
+    list of attribute => value pairs, e.g.
+
+        div {
+            attr {
+                id  => 'one',
+                bip => 'two',
+            };
+        };
 
 USAGE
     Each supported HTML tag takes a coderef, executes it, and returns the
@@ -130,6 +145,16 @@ EXPORTED FUNCTIONS
 
     As "tr" would conflict with a Perl builtin, it is recommended that this
     group be imported with a prefix ('table_' would seem to suggest itself).
+
+   :header
+    Header tags:
+
+        header hgroup
+
+   :form
+    Form tags:
+
+        form fieldset button input label optgroup option select textarea
 
 ACKNOWLEDGMENTS
     This package was inspired by Template::Declare::Tags... In particular,

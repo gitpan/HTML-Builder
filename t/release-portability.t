@@ -22,4 +22,5 @@ use Test::More;
 eval 'use Test::Portability::Files';
 plan skip_all => 'Test::Portability::Files required for testing portability'
     if $@;
+options(test_amiga_length => 0, test_one_dot => 0, test_vms_length => 0);
 run_tests();

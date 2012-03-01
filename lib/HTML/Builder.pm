@@ -9,7 +9,7 @@
 #
 package HTML::Builder;
 {
-  $HTML::Builder::VERSION = '0.004';
+  $HTML::Builder::VERSION = '0.005';
 }
 
 # ABSTRACT: A declarative approach to HTML generation
@@ -84,6 +84,13 @@ sub html_tags {
 }
 
 
+sub form_tags { qw{
+
+    form fieldset button input label optgroup option select textarea
+
+}}
+
+
 sub table_tags { qw{ tr td th thead tbody tfoot } }
 
 
@@ -102,6 +109,16 @@ sub our_tags {
         (keys %{ conflicting_tags() }),
     );
     return uniq sort @tags;
+}
+
+
+sub _attr { die }
+
+sub attr(&) {
+    my $code = shift;
+
+    ### in attr...
+    _attr($code->());
 }
 
 sub _is_autoload_gen {
@@ -127,6 +144,19 @@ sub _is_autoload_gen {
     };
 }
 
+sub _attr_gen {
+    my ($attr_href) = @_;
+
+    return sub {
+
+        my %attrs = @_;
+        ### %attrs
+        @{$attr_href}{keys %attrs} = (values %attrs);
+
+        return;
+    };
+}
+
 sub tag($&) {
     my ($tag, $inner_coderef) = @_;
 
@@ -140,6 +170,7 @@ sub tag($&) {
     # it was achieved over there.
     no warnings 'once', 'redefine';
     local *gets::AUTOLOAD = _is_autoload_gen(\%attrs);
+    local *_attr = _attr_gen(\%attrs);
     my $inner = q{};
     my $stdout = capture_stdout { local $IN_TAG = 1; $inner .= $inner_coderef->() || q{} };
 
@@ -157,15 +188,17 @@ sub tag($&) {
 
 use Sub::Exporter -setup => {
 
-    exports => [ our_tags ],
+    exports => [ our_tags, 'attr' ],
     groups  => {
 
-        default    => ':minimal',
+        default     => ':minimal',
 
-        minimal     => sub { _generate_group([     minimal_tags ], @_) },
-        html5       => sub { _generate_group([       html5_tags ], @_) },
-        depreciated => sub { _generate_group([ depreciated_tags ], @_) },
-        table       => sub { _generate_group([       table_tags ], @_) },
+        minimal     => sub { _generate_group([       minimal_tags ], @_) },
+        html5       => sub { _generate_group([         html5_tags ], @_) },
+        depreciated => sub { _generate_group([   depreciated_tags ], @_) },
+        table       => sub { _generate_group([         table_tags ], @_) },
+        form        => sub { _generate_group([          form_tags ], @_) },
+        header      => sub { _generate_group([qw{ header hgroup } ], @_) },
     },
 };
 
@@ -173,6 +206,7 @@ sub _generate_group {
     my ($tags, $class, $group, $arg) = @_;
 
     return {
+        attr => \&attr,
         map { my $tag = $_; $tag => sub(&) { unshift @_, $tag; goto \&tag } }
         @$tags
     };
@@ -207,7 +241,7 @@ HTML::Builder - A declarative approach to HTML generation
 
 =head1 VERSION
 
-This document describes 0.004 of HTML::Builder - released February 20, 2012 as part of HTML-Builder.
+This document describes 0.005 of HTML::Builder - released March 01, 2012 as part of HTML-Builder.
 
 =head1 SYNOPSIS
 
@@ -254,6 +288,10 @@ The unique, sorted list of all tags returned by html5_tags() and html_tags().
 Returns a HashRef of tags that conflict with Perl builtins: our named exports
 for the tags are the keys; the tags themselves are the values.
 
+=head2 form_tags
+
+A list of tags related to forms, that will belong to the C<:form> group.
+
 =head2 table_tags
 
 A list of tags related to tables, that will belong to the C<:table> group.
@@ -266,6 +304,19 @@ C<:minimal> group.
 =head2 our_tags
 
 The set of all the tags we know of.
+
+=head2 attr(&)
+
+An alternative to using C<gets> (or instances where it won't work, e.g. C<for
+gets 'name'>).  Takes a coderef, expects that coderef to return a list of
+attribute => value pairs, e.g.
+
+    div {
+        attr {
+            id  => 'one',
+            bip => 'two',
+        };
+    };
 
 =head1 USAGE
 
@@ -353,6 +404,18 @@ The table tags:
 
 As C<tr> would conflict with a Perl builtin, it is recommended that this group
 be imported with a prefix ('table_' would seem to suggest itself).
+
+=head3 :header
+
+Header tags:
+
+    header hgroup
+
+=head3 :form
+
+Form tags:
+
+    form fieldset button input label optgroup option select textarea
 
 =head1 ACKNOWLEDGMENTS
 
