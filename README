@@ -2,8 +2,8 @@ NAME
     HTML::Builder - A declarative approach to HTML generation
 
 VERSION
-    This document describes 0.005 of HTML::Builder - released March 01, 2012
-    as part of HTML-Builder.
+    This document describes version 0.006 of HTML::Builder - released March
+    20, 2012 as part of HTML-Builder.
 
 SYNOPSIS
         use HTML::Builder ':minimal';
@@ -36,6 +36,11 @@ FUNCTIONS
   our_tags()
     The unique, sorted list of all tags returned by html5_tags() and
     html_tags().
+
+  html5_minimal_tags()
+    A minimal subset of HTML5 tags as returned by html5_tags():
+
+        article aside footer header nav
 
   conflicting_tags
     Returns a HashRef of tags that conflict with Perl builtins: our named

@@ -12,7 +12,7 @@ my $v = "\n";
 
 eval {                     # no excuses!
     # report our Perl details
-    my $want = 'v5.10';
+    my $want = 'v5.10.0';
     my $pv = ($^V || $]);
     $v .= "perl: $pv (wanted $want) on $^O from $^X\n\n";
 };
@@ -57,6 +57,7 @@ eval { $v .= pmver('List::MoreUtils','any version') };
 eval { $v .= pmver('Sub::Exporter','any version') };
 eval { $v .= pmver('Sub::Install','any version') };
 eval { $v .= pmver('Test::More','0.88') };
+eval { $v .= pmver('Test::Requires','any version') };
 eval { $v .= pmver('strict','any version') };
 eval { $v .= pmver('warnings','any version') };
 
