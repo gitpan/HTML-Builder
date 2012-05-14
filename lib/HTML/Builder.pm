@@ -9,7 +9,7 @@
 #
 package HTML::Builder;
 {
-  $HTML::Builder::VERSION = '0.006';
+  $HTML::Builder::VERSION = '0.007';
 }
 
 # ABSTRACT: A declarative approach to HTML generation
@@ -94,7 +94,7 @@ sub form_tags { qw{
 }}
 
 
-sub table_tags { qw{ tr td th thead tbody tfoot } }
+sub table_tags { qw{ table tr td th thead tbody tfoot } }
 
 
 sub minimal_tags {
@@ -245,7 +245,7 @@ HTML::Builder - A declarative approach to HTML generation
 
 =head1 VERSION
 
-This document describes version 0.006 of HTML::Builder - released March 20, 2012 as part of HTML-Builder.
+This document describes version 0.007 of HTML::Builder - released May 13, 2012 as part of HTML-Builder.
 
 =head1 SYNOPSIS
 

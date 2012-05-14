@@ -57,7 +57,6 @@ eval { $v .= pmver('List::MoreUtils','any version') };
 eval { $v .= pmver('Sub::Exporter','any version') };
 eval { $v .= pmver('Sub::Install','any version') };
 eval { $v .= pmver('Test::More','0.88') };
-eval { $v .= pmver('Test::Requires','any version') };
 eval { $v .= pmver('strict','any version') };
 eval { $v .= pmver('warnings','any version') };
 
