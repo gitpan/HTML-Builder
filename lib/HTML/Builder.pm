@@ -9,7 +9,7 @@
 #
 package HTML::Builder;
 {
-  $HTML::Builder::VERSION = '0.007';
+  $HTML::Builder::VERSION = '0.008';
 }
 
 # ABSTRACT: A declarative approach to HTML generation
@@ -53,7 +53,8 @@ sub html5_tags { qw{
 sub html5_minimal_tags { q{ article aside footer header nav } }
 
 # excl: s
-sub depreciated_tags { qw{ applet basefont center dir font menu strike u xmp } }
+sub deprecated_tags { qw{ applet basefont center dir font menu strike u xmp } }
+sub depreciated_tags { deprecated_tags() }
 
 
 sub conflicting_tags { {
@@ -108,7 +109,7 @@ sub our_tags {
     my @tags = (
         html5_tags(),
         html_tags(),
-        depreciated_tags(),
+        deprecated_tags(),
         (keys %{ conflicting_tags() }),
     );
     return uniq sort @tags;
@@ -199,7 +200,8 @@ use Sub::Exporter -setup => {
         minimal       => sub { _generate_group([       minimal_tags ], @_) },
         html5         => sub { _generate_group([         html5_tags ], @_) },
         html5_minimal => sub { _generate_group([ html5_minimal_tags ], @_) },
-        depreciated   => sub { _generate_group([   depreciated_tags ], @_) },
+        deprecated    => sub { _generate_group([    deprecated_tags ], @_) },
+        depreciated   => sub { _generate_group([    deprecated_tags ], @_) },
         table         => sub { _generate_group([         table_tags ], @_) },
         form          => sub { _generate_group([          form_tags ], @_) },
         header        => sub { _generate_group([qw{ header hgroup } ], @_) },
@@ -233,11 +235,13 @@ sub _generate_group {
 
 !!42;
 
-
+__END__
 
 =pod
 
 =encoding utf-8
+
+=for :stopwords Chris Weyl Wikipedia
 
 =head1 NAME
 
@@ -245,7 +249,7 @@ HTML::Builder - A declarative approach to HTML generation
 
 =head1 VERSION
 
-This document describes version 0.007 of HTML::Builder - released May 13, 2012 as part of HTML-Builder.
+This document describes version 0.008 of HTML::Builder - released December 02, 2012 as part of HTML-Builder.
 
 =head1 SYNOPSIS
 
@@ -279,9 +283,9 @@ The list of tags we think are HTML5.
 
 The list of tags we think are HTML ( < HTML5, that is).
 
-=head2 depreciated_tags()
+=head2 deprecated_tags()
 
-HTML elements considered to be depreciated.
+HTML elements considered to be deprecated.
 
 =head2 our_tags()
 
@@ -327,6 +331,8 @@ attribute => value pairs, e.g.
             bip => 'two',
         };
     };
+
+=for Pod::Coverage depreciated_tags
 
 =head1 USAGE
 
@@ -454,23 +460,13 @@ L<HTML::HTML5::Builder>
 
 =back
 
-=head1 SOURCE
-
-The development version is on github at L<http://github.com/RsrchBoy/html-builder>
-and may be cloned from L<git://github.com/RsrchBoy/html-builder.git>
-
-=head1 BUGS
-
-Please report any bugs or feature requests on the bugtracker website
-https://github.com/RsrchBoy/html-builder/issues
-
-When submitting a bug or request, please include a test-file or a
-patch to an existing test-file that illustrates the bug or desired
-feature.
-
 =head1 AUTHOR
 
 Chris Weyl <cweyl@alumni.drew.edu>
+
+=head1 CONTRIBUTOR
+
+Olaf Alders <olaf@wundersolutions.com>
 
 =head1 COPYRIGHT AND LICENSE
 
@@ -481,7 +477,3 @@ This is free software, licensed under:
   The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut
-
-
-__END__
-

@@ -2,8 +2,8 @@ NAME
     HTML::Builder - A declarative approach to HTML generation
 
 VERSION
-    This document describes version 0.007 of HTML::Builder - released May
-    13, 2012 as part of HTML-Builder.
+    This document describes version 0.008 of HTML::Builder - released
+    December 02, 2012 as part of HTML-Builder.
 
 SYNOPSIS
         use HTML::Builder ':minimal';
@@ -30,8 +30,8 @@ FUNCTIONS
   html_tags()
     The list of tags we think are HTML ( < HTML5, that is).
 
-  depreciated_tags()
-    HTML elements considered to be depreciated.
+  deprecated_tags()
+    HTML elements considered to be deprecated.
 
   our_tags()
     The unique, sorted list of all tags returned by html5_tags() and
@@ -178,20 +178,11 @@ SEE ALSO
 
     *   HTML::HTML5::Builder
 
-SOURCE
-    The development version is on github at
-    <http://github.com/RsrchBoy/html-builder> and may be cloned from
-    <git://github.com/RsrchBoy/html-builder.git>
-
-BUGS
-    Please report any bugs or feature requests on the bugtracker website
-    https://github.com/RsrchBoy/html-builder/issues
-
-    When submitting a bug or request, please include a test-file or a patch
-    to an existing test-file that illustrates the bug or desired feature.
-
 AUTHOR
     Chris Weyl <cweyl@alumni.drew.edu>
+
+CONTRIBUTOR
+    Olaf Alders <olaf@wundersolutions.com>
 
 COPYRIGHT AND LICENSE
     This software is Copyright (c) 2012 by Chris Weyl.
